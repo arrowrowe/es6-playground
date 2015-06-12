@@ -12,9 +12,7 @@
     console.log(`We've got multi-line syntax as well.
                 Though a bit strange...`);
     // Node do not have `String.raw` in the transpiled code by Babel.
-    /*
-    console.log(String.raw`And raw string without \n\r\t interpretion...`)
-     */
+    console.log(String.raw`And raw string without \n\r\t interpretion...`);
     // For other Unicode stuff, see
     // [ES6 — strings](https://github.com/arrowrowe/es6-playground).
 }
@@ -26,10 +24,7 @@
         console.log(char);
     }
     // Explode!
-    // Node cannot run it because of missing `Array.from` in the Babel-transpiled code.
-    /*
     console.log([...chars]);
-     */
 }
 
 /*
