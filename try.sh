@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 COLOR_DEFAULT='\033[1;34m'
 COLOR_FILE='\033[0;37m'
 COLOR_NO='\033[0m'

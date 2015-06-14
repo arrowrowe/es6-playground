@@ -1,3 +1,5 @@
 # Transpiled code
 out
 
+.idea/*
+.DS_Store
