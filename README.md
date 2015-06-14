@@ -3,11 +3,11 @@ ES6 Playground
 
 Try ES6!
 
-Install traceur globally
+Install traceur locally
 ````
-npm install -g traceur
+npm install
 ````
-With traceur preinstalled globally, run this:
+Then run this:
 
 ```
 $ ./try.sh try-string.js
