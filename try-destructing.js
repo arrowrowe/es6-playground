@@ -12,3 +12,10 @@
     let {one: a, two: b, values: [c, , e]} = mixed;
     console.log(a, b, c, e);
 }
+
+{
+    // We can destruct generators!
+    let g = function* () { for (let i = 0; ; i++) { yield i; }},
+        [a, b, c] = g();
+    console.log(a, b, c);
+}
