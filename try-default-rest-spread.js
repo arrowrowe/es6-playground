@@ -21,3 +21,13 @@
     console.log(sum(1, ...sampleNumbers, 2));
 }
 
+{
+    // Default value is evaluated from left to right every time the function is called
+    let intro = (name, fav = {'sheep': 'grass', 'boy': 'code'}[name]) => {
+        console.log(`Hey, ${name} likes ${fav}!`);
+    };
+    intro('sheep');
+    intro('boy');
+    intro('boy', 'you');
+}
+
