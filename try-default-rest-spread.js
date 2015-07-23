@@ -31,3 +31,10 @@
     intro('boy', 'you');
 }
 
+{
+    var curry = (f, ...h) => (...t) => f(...h, ...t);
+    var add = (a, b) => (a + b);
+    var add1 = curry(add, 1);
+    console.log(add1(4));
+}
+
