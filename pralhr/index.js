@@ -90,7 +90,7 @@ let pralhr = {};
         }
       }
     };
-    this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+    this.load = () => this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
       this.data[iIn][jIn] = this.su[iOut][jOut];
     });
     this.think = () => this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
@@ -99,6 +99,7 @@ let pralhr = {};
       }
       this.pos[iOut][jOut] = _.differenceSet(this.pos[iOut][jOut], new Set(this.data[iIn]));
     });
+    this.load();
   };
 
   // Detect if arr is an array with 9 elements satisfying fn
@@ -132,7 +133,14 @@ let pralhr = {};
         return pos[i][j].size;
       }
     }));
-    return simplify(su, pos);
+    if (simplify(su, pos)) {
+      tSu.load();
+      tUs.load();
+      tKu.load();
+      return true;
+    } else {
+      return false;
+    }
   };
 
   let _solve = su => {
