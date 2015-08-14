@@ -106,12 +106,25 @@ let pralhr = {};
   // Detect if su is an 9x9 matrix of one-digit integers
   pralhr.check = su => a9a(su, row => a9a(row, x => typeof x === 'number' && _.has(a09, x)));
 
+  let simplify = (su, pos) => {
+    let simplified = false;
+    forAll((i, j) => {
+      let p = pos[i][j];
+      if (p !== null && p.size === 1) {
+        su[i][j] = _.first(p);
+        console.log('Found: (%d, %d) is %d.', i, j, su[i][j]);
+        pos[i][j] = null;
+        simplified = true;
+      }
+    });
+    return simplified;
+  };
+
   // Detect if the sudoku can still be processed
-  let think = (pos, tSu, tUs, tKu) => {
+  let think = (su, pos, tSu, tUs, tKu) => {
     tSu.think();
     tUs.think();
     tKu.think();
-    let su = tSu.su;
     console.log(mapAll((i, j) => {
       if (su[i][j] > 0) {
         return 0;
@@ -119,8 +132,7 @@ let pralhr = {};
         return pos[i][j].size;
       }
     }));
-    // Just return false to debug
-    return false;
+    return simplify(su, pos);
   };
 
   let _solve = su => {
@@ -145,7 +157,7 @@ let pralhr = {};
         return [iDiv * 3 + iMod, jDiv * 3 + jMod];
       }
     );
-    while (think(pos, tSu, tUs, tKu)) {}
+    while (think(su, pos, tSu, tUs, tKu)) {}
     return 'Debug';
   };
   pralhr.solve = (...args) => pralhr.check(...args) && _solve(...args);
