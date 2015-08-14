@@ -21,23 +21,18 @@ let _ = {};
 
   let intersectionTwo = (s1, s2) => {
     let ret = new Set();
-    for (let ele of s1) {
-      if (s2.has(ele)) {
-        ret.add(ele);
-      }
-    }
+    for (let ele of s1) { if (s2.has(ele)) ret.add(ele); }
     return ret;
   };
   _.intersection = (...args) => args.reduce(intersectionTwo);
   _.differenceSet = (s1, s2) => {
     let ret = new Set();
-    for (let ele of s1) {
-      if (!s2.has(ele)) {
-        ret.add(ele);
-      }
-    }
+    for (let ele of s1) { if (!s2.has(ele)) ret.add(ele); }
     return ret;
   };
+
+  _.first = arr => { for (let ele of arr) return ele; };
+
 }
 
 /*********************
@@ -48,6 +43,7 @@ let _ = {};
   console.assert(true === _.all([1, 2, 3], x => x > 0), '`all` return true');
   console.assert(false === _.all([1, 2, 3], x => x > 1), '`all` return false');
   console.assert(2 === _.differenceSet(new Set([0, 1, 2, 3, 4]), new Set([2, 3, 4, 5])).size, '`differenceSet` works');
+  console.assert(7 === _.first(new Set([7])), '`first` works');
 }
 
 /*********************
