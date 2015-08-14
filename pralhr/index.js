@@ -29,6 +29,25 @@ let _ = {};
     return ret;
   };
   _.intersection = (...args) => args.reduce(intersectionTwo);
+  _.differenceSet = (s1, s2) => {
+    let ret = new Set();
+    for (let ele of s1) {
+      if (!s2.has(ele)) {
+        ret.add(ele);
+      }
+    }
+    return ret;
+  };
+}
+
+/*********************
+ * Utility tests
+ *********************/
+
+{
+  console.assert(true === _.all([1, 2, 3], x => x > 0), '`all` return true');
+  console.assert(false === _.all([1, 2, 3], x => x > 1), '`all` return false');
+  console.assert(2 === _.differenceSet(new Set([0, 1, 2, 3, 4]), new Set([2, 3, 4, 5])).size, '`differenceSet` works');
 }
 
 /*********************
@@ -61,41 +80,76 @@ let pralhr = {};
     return arr;
   };
 
+  let Trans = function (su, pos, fnIn, fnOut) {
+    this.fnIn = fnIn;
+    this.fnOut = fnOut;
+    this.data = mapAll(() => null);
+    this.su = su;
+    this.pos = pos;
+    this.forEach = (fn) => {
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          let [iOut, jOut] = fnOut(i, j);
+          fn(this.data[i][j], i, j, this.su[iOut, jOut], iOut, jOut);
+        }
+      }
+    };
+    this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+      this.data[iIn][jIn] = this.su[iOut][jOut];
+    });
+    this.think = () => this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+      if (this.pos[iOut][jOut] === null) {
+        return;
+      }
+      this.pos[iOut][jOut] = _.differenceSet(this.pos[iOut][jOut], new Set(this.data[iIn]));
+    });
+  };
+
   // Detect if arr is an array with 9 elements satisfying fn
   let a9a = (arr, fn) => arr instanceof Array && arr.length === 9 && _.all(arr, fn);
   // Detect if su is an 9x9 matrix of one-digit integers
   pralhr.check = su => a9a(su, row => a9a(row, x => typeof x === 'number' && _.has(a09, x)));
 
-  // Detect if the sudoku(su, us, ku, the same thing) can still be processed
-  let think = (pos, su, us, ku) => {
-    console.log('========= su =========');
-    console.log(su);
-    console.log('========= us =========');
-    console.log(us);
-    console.log('========= ku =========');
-    console.log(ku);
+  // Detect if the sudoku can still be processed
+  let think = (pos, tSu, tUs, tKu) => {
+    tSu.think();
+    tUs.think();
+    tKu.think();
+    let su = tSu.su;
+    console.log(mapAll((i, j) => {
+      if (su[i][j] > 0) {
+        return 0;
+      } else {
+        return pos[i][j].size;
+      }
+    }));
     // Just return false to debug
     return false;
   };
 
   let _solve = su => {
     // Possible values for each unknown
-    let pos = mapAll((i, j) => su[i][j] === 0 ? Array.from(a19) : null);
+    let pos = mapAll((i, j) => su[i][j] === 0 ? new Set(a19) : null);
+    // Rows
+    let tSu = new Trans(su, pos, (i, j) => [i, j], (i, j) => [i, j]);
     // Columns
-    let us = a08.map(j => su.map(row => row[j]));
+    let tUs = new Trans(su, pos, (i, j) => [j, i], (j, i) => [i, j]);
     // 3x3 squares
-    let ku = a08.map(kuIndex => {
-      let jS = kuIndex % 3;
-      let iS = (kuIndex - jS) / 3;
-      iS *= 3;
-      jS *= 3;
-      return [
-        su[iS    ][jS], su[iS    ][jS + 1], su[iS    ][jS + 2],
-        su[iS + 1][jS], su[iS + 1][jS + 1], su[iS + 1][jS + 2],
-        su[iS + 2][jS], su[iS + 2][jS + 1], su[iS + 2][jS + 2]
-      ];
-    });
-    while (think(pos, su, us, ku)) {}
+    let tKu = new Trans(
+      su,
+      pos,
+      (i, j) => {
+        let iMod = i % 3, iDiv = (i - iMod) / 3;
+        let jMod = j % 3, jDiv = (j - jMod) / 3;
+        return [iDiv * 3 + jDiv, iMod * 3 + jMod];
+      },
+      (u, v) => {
+        let jDiv = u % 3, iDiv = (u - jDiv) / 3;
+        let jMod = v % 3, iMod = (v - jMod) / 3;
+        return [iDiv * 3 + iMod, jDiv * 3 + jMod];
+      }
+    );
+    while (think(pos, tSu, tUs, tKu)) {}
     return 'Debug';
   };
   pralhr.solve = (...args) => pralhr.check(...args) && _solve(...args);
