@@ -88,15 +88,8 @@ let pralhr = {};
       }
     };
     this.load = () => {
-      hold = mapAll(() => []);
       forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
-        let x = su[iOut][jOut];
-        data[iIn][jIn] = x;
-        if (x === 0) {
-          for (let maybe of pos[iOut][jOut]) {
-            hold[iIn][maybe - 1].push(jIn);
-          }
-        }
+        data[iIn][jIn] = su[iOut][jOut];
       });
       forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
         if (pos[iOut][jOut] === null) {
@@ -105,8 +98,19 @@ let pralhr = {};
         pos[iOut][jOut] = _.differenceSet(pos[iOut][jOut], new Set(data[iIn]));
       });
     };
+    this.loop = () => {
+      hold = mapAll(() => []);
+      forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+        if (pos[iOut][jOut] === null) {
+          return;
+        }
+        for (let maybe of pos[iOut][jOut]) {
+          hold[iIn][maybe - 1].push(jIn);
+        }
+      });
+    };
     let fill = (i, j, x) => {
-      console.log('    (%d, %d) = %d    // %s', i + 1, j + 1, x, name);
+      // console.log('    (%d, %d) = %d    // %s', i + 1, j + 1, x, name);
       su[i][j] = x;
       pos[i][j] = null;
       su.got++;
@@ -145,9 +149,8 @@ let pralhr = {};
   // Detect if the sudoku can still be processed
   let think = (su, pos, tSu, tUs, tKu) => {
     if (tSu.think() || tUs.think() || tKu.think()) {
-      tSu.load();
-      tUs.load();
-      tKu.load();
+      tSu.load(); tUs.load(); tKu.load();
+      tSu.loop(); tUs.loop(); tKu.loop();
       return true;
     } else {
       return false;
@@ -180,6 +183,7 @@ let pralhr = {};
       },
       'Square'
     );
+    tSu.loop(); tUs.loop(); tKu.loop();
     while (think(su, pos, tSu, tUs, tKu)) {}
     return su;
   };
@@ -192,7 +196,6 @@ let pralhr = {};
 
 {
   [
-    /*
     [
       [5, 0, 4, 6, 0, 0, 0, 0, 2],
       [2, 0, 1, 0, 3, 5, 0, 0, 9],
@@ -204,7 +207,6 @@ let pralhr = {};
       [8, 0, 0, 4, 5, 0, 9, 0, 7],
       [4, 0, 0, 0, 0, 1, 8, 0, 6]
     ],
-    */
     [
       [3, 0, 0, 6, 0, 0, 0, 8, 0],
       [9, 8, 7, 0, 1, 4, 0, 0, 0],
@@ -215,8 +217,7 @@ let pralhr = {};
       [0, 0, 8, 0, 4, 0, 0, 0, 5],
       [0, 0, 0, 7, 6, 0, 9, 1, 8],
       [0, 5, 0, 0, 0, 3, 0, 0, 2]
-    ]
-    /*
+    ],
     [
       [0, 0, 5, 0, 2, 8, 0, 1, 0],
       [3, 0, 0, 1, 0, 7, 0, 0, 0],
@@ -261,7 +262,6 @@ let pralhr = {};
       [0, 0, 2, 0, 0, 0, 0, 0, 0],
       [0, 8, 0, 3, 0, 1, 0, 2, 0]
     ]
-    */
   ].map(su => {
     pralhr.solve(su);
     if (su.left !== 0) {
