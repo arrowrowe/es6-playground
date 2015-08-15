@@ -131,7 +131,6 @@ let pralhr = {};
       let p = pos[i][j];
       if (p !== null && p.size === 1) {
         su[i][j] = _.first(p);
-        console.log('Found: (%d, %d) is %d.', i, j, su[i][j]);
         pos[i][j] = null;
         simplified = true;
       }
@@ -186,7 +185,7 @@ let pralhr = {};
       }
     );
     while (think(su, pos, tSu, tUs, tKu)) {}
-    return 'Debug';
+    return su;
   };
   pralhr.solve = (...args) => pralhr.check(...args) && _solve(...args);
 }
