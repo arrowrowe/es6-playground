@@ -76,46 +76,58 @@ let pralhr = {};
     return arr;
   };
 
-  let Trans = function (su, pos, fnIn, fnOut) {
-    this.fnIn = fnIn;
-    this.fnOut = fnOut;
-    this.data = mapAll(() => null);
-    this.su = su;
-    this.pos = pos;
-    this.forEach = (fn) => {
+  let Trans = function (su, pos, fnIn, fnOut, name) {
+    let data = mapAll(() => null);
+    let hold;
+    let forEach = (fn) => {
       for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 9; j++) {
           let [iOut, jOut] = fnOut(i, j);
-          fn(this.data[i][j], i, j, this.su[iOut][jOut], iOut, jOut);
+          fn(data[i][j], i, j, su[iOut][jOut], iOut, jOut);
         }
       }
     };
     this.load = () => {
-      this.hold = mapAll(() => 0);
-      this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
-        let x = this.su[iOut][jOut];
-        this.data[iIn][jIn] = x;
+      hold = mapAll(() => []);
+      forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+        let x = su[iOut][jOut];
+        data[iIn][jIn] = x;
         if (x === 0) {
-          for (let maybe of this.pos[iOut][jOut]) {
-            this.hold[iIn][maybe - 1]++;
+          for (let maybe of pos[iOut][jOut]) {
+            hold[iIn][maybe - 1].push(jIn);
           }
         }
       });
     };
+    let fill = (i, j, x) => {
+      console.log('    (%d, %d) = %d    // %s', i + 1, j + 1, x, name);
+      su[i][j] = x;
+      pos[i][j] = null;
+      su.got++;
+      su.left--;
+    };
     this.think = () => {
-      this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
-        if (this.pos[iOut][jOut] === null) {
+      let simplified = false;
+      forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+        if (pos[iOut][jOut] === null) {
           return;
         }
-        let pos = _.differenceSet(this.pos[iOut][jOut], new Set(this.data[iIn]));
-        this.pos[iOut][jOut] = pos;
-        for (let x of pos) {
-          if (this.hold[iIn][x - 1] === 1) {
-            this.pos[iOut][jOut] = new Set([x]);
+        let p = _.differenceSet(pos[iOut][jOut], new Set(data[iIn]));
+        if (p.size === 1) {
+          fill(iOut, jOut, _.first(p));
+          simplified = true;
+          return;
+        }
+        for (let x of p) {
+          if (hold[iIn][x - 1].length === 1 && hold[iIn][x - 1][0] === jIn) {
+            fill(iOut, jOut, x);
+            simplified = true;
             return;
           }
         }
+        pos[iOut][jOut] = p;
       });
+      return simplified;
     };
     this.load();
   };
@@ -125,26 +137,8 @@ let pralhr = {};
   // Detect if su is an 9x9 matrix of one-digit integers
   pralhr.check = su => a9a(su, row => a9a(row, x => typeof x === 'number' && _.has(a09, x)));
 
-  let simplify = (su, pos) => {
-    let simplified = false;
-    forAll((i, j) => {
-      let p = pos[i][j];
-      if (p !== null && p.size === 1) {
-        su[i][j] = _.first(p);
-        pos[i][j] = null;
-        su.got++;
-        su.left--;
-        simplified = true;
-      }
-    });
-    return simplified;
-  };
-
   // Detect if the sudoku can still be processed
   let think = (su, pos, tSu, tUs, tKu) => {
-    tSu.think();
-    tUs.think();
-    tKu.think();
     /*
     console.log(mapAll((i, j) => {
       if (su[i][j] > 0) {
@@ -154,7 +148,7 @@ let pralhr = {};
       }
     }));
     */
-    if (simplify(su, pos)) {
+    if (tSu.think() || tUs.think() || tKu.think()) {
       tSu.load();
       tUs.load();
       tKu.load();
@@ -171,9 +165,9 @@ let pralhr = {};
     su.got = 0;
     let pos = mapAll((i, j) => su[i][j] === 0 ? (su.left++, new Set(a19)) : (su.beginKnown++, null));
     // Rows
-    let tSu = new Trans(su, pos, (i, j) => [i, j], (i, j) => [i, j]);
+    let tSu = new Trans(su, pos, (i, j) => [i, j], (i, j) => [i, j], 'Row');
     // Columns
-    let tUs = new Trans(su, pos, (i, j) => [j, i], (j, i) => [i, j]);
+    let tUs = new Trans(su, pos, (i, j) => [j, i], (j, i) => [i, j], 'Column');
     // 3x3 squares
     let tKu = new Trans(
       su,
@@ -187,7 +181,8 @@ let pralhr = {};
         let jDiv = u % 3, iDiv = (u - jDiv) / 3;
         let jMod = v % 3, iMod = (v - jMod) / 3;
         return [iDiv * 3 + iMod, jDiv * 3 + jMod];
-      }
+      },
+      'Square'
     );
     while (think(su, pos, tSu, tUs, tKu)) {}
     return su;
@@ -221,5 +216,17 @@ console.log(pralhr.solve([
   [0, 0, 8, 0, 4, 0, 0, 0, 5],
   [0, 0, 0, 7, 6, 0, 9, 1, 8],
   [0, 5, 0, 0, 0, 3, 0, 0, 2]
+]));
+
+console.log(pralhr.solve([
+  [0, 0, 5, 0, 2, 8, 0, 1, 0],
+  [3, 0, 0, 1, 0, 7, 0, 0, 0],
+  [0, 1, 0, 0, 9, 0, 9, 0, 0],
+  [0, 0, 0, 6, 5, 0, 2, 4, 1],
+  [0, 0, 4, 7, 0, 2, 9, 0, 0],
+  [1, 6, 2, 0, 8, 4, 0, 0, 0],
+  [0, 0, 8, 0, 6, 0, 0, 9, 0],
+  [0, 0, 0, 2, 0, 9, 0, 0, 7],
+  [0, 9, 0, 8, 7, 0, 6, 0, 0]
 ]));
 
