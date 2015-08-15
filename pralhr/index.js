@@ -86,19 +86,37 @@ let pralhr = {};
       for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 9; j++) {
           let [iOut, jOut] = fnOut(i, j);
-          fn(this.data[i][j], i, j, this.su[iOut, jOut], iOut, jOut);
+          fn(this.data[i][j], i, j, this.su[iOut][jOut], iOut, jOut);
         }
       }
     };
-    this.load = () => this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
-      this.data[iIn][jIn] = this.su[iOut][jOut];
-    });
-    this.think = () => this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
-      if (this.pos[iOut][jOut] === null) {
-        return;
-      }
-      this.pos[iOut][jOut] = _.differenceSet(this.pos[iOut][jOut], new Set(this.data[iIn]));
-    });
+    this.load = () => {
+      this.hold = mapAll(() => 0);
+      this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+        let x = this.su[iOut][jOut];
+        this.data[iIn][jIn] = x;
+        if (x === 0) {
+          for (let maybe of this.pos[iOut][jOut]) {
+            this.hold[iIn][maybe - 1]++;
+          }
+        }
+      });
+    };
+    this.think = () => {
+      this.forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+        if (this.pos[iOut][jOut] === null) {
+          return;
+        }
+        let pos = _.differenceSet(this.pos[iOut][jOut], new Set(this.data[iIn]));
+        this.pos[iOut][jOut] = pos;
+        for (let x of pos) {
+          if (this.hold[iIn][x - 1] === 1) {
+            this.pos[iOut][jOut] = new Set([x]);
+            return;
+          }
+        }
+      });
+    };
     this.load();
   };
 
@@ -126,6 +144,7 @@ let pralhr = {};
     tSu.think();
     tUs.think();
     tKu.think();
+    /*
     console.log(mapAll((i, j) => {
       if (su[i][j] > 0) {
         return 0;
@@ -133,6 +152,7 @@ let pralhr = {};
         return pos[i][j].size;
       }
     }));
+    */
     if (simplify(su, pos)) {
       tSu.load();
       tUs.load();
