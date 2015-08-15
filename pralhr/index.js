@@ -98,9 +98,15 @@ let pralhr = {};
           }
         }
       });
+      forEach((xIn, iIn, jIn, xOut, iOut, jOut) => {
+        if (pos[iOut][jOut] === null) {
+          return;
+        }
+        pos[iOut][jOut] = _.differenceSet(pos[iOut][jOut], new Set(data[iIn]));
+      });
     };
     let fill = (i, j, x) => {
-      // console.log('    (%d, %d) = %d    // %s', i + 1, j + 1, x, name);
+      console.log('    (%d, %d) = %d    // %s', i + 1, j + 1, x, name);
       su[i][j] = x;
       pos[i][j] = null;
       su.got++;
@@ -112,7 +118,7 @@ let pralhr = {};
         if (pos[iOut][jOut] === null) {
           return;
         }
-        let p = _.differenceSet(pos[iOut][jOut], new Set(data[iIn]));
+        let p = pos[iOut][jOut];
         if (p.size === 1) {
           fill(iOut, jOut, _.first(p));
           simplified = true;
@@ -125,7 +131,6 @@ let pralhr = {};
             return;
           }
         }
-        pos[iOut][jOut] = p;
       });
       return simplified;
     };
@@ -187,6 +192,7 @@ let pralhr = {};
 
 {
   [
+    /*
     [
       [5, 0, 4, 6, 0, 0, 0, 0, 2],
       [2, 0, 1, 0, 3, 5, 0, 0, 9],
@@ -198,7 +204,7 @@ let pralhr = {};
       [8, 0, 0, 4, 5, 0, 9, 0, 7],
       [4, 0, 0, 0, 0, 1, 8, 0, 6]
     ],
-    /*
+    */
     [
       [3, 0, 0, 6, 0, 0, 0, 8, 0],
       [9, 8, 7, 0, 1, 4, 0, 0, 0],
@@ -209,8 +215,8 @@ let pralhr = {};
       [0, 0, 8, 0, 4, 0, 0, 0, 5],
       [0, 0, 0, 7, 6, 0, 9, 1, 8],
       [0, 5, 0, 0, 0, 3, 0, 0, 2]
-    ],
-    */
+    ]
+    /*
     [
       [0, 0, 5, 0, 2, 8, 0, 1, 0],
       [3, 0, 0, 1, 0, 7, 0, 0, 0],
@@ -255,6 +261,7 @@ let pralhr = {};
       [0, 0, 2, 0, 0, 0, 0, 0, 0],
       [0, 8, 0, 3, 0, 1, 0, 2, 0]
     ]
+    */
   ].map(su => {
     pralhr.solve(su);
     if (su.left !== 0) {
